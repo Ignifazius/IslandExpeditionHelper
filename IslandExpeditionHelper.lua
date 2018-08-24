@@ -5,12 +5,12 @@ local eventResponseFrame = CreateFrame("Frame", "Helper")
 	eventResponseFrame:RegisterEvent("CURSOR_UPDATE");
 
 
-local function eventHandler(self, event, arg1 , arg2, arg3, arg4, arg5)
+local function eventHandler(self, event)
     if (event == "UPDATE_MOUSEOVER_UNIT") then
         
     elseif (event == "CURSOR_UPDATE") then
-        function__wait(0.1, addShrineTooltip)
-        function__wait(0.1, addValueToTooltip)
+        function__wait(0.1, IslandExpeditionHelper_addShrineTooltip)
+        function__wait(0.1, IslandExpeditionHelper_addValueToTooltip)
     end
 end
 eventResponseFrame:SetScript("OnEvent", eventHandler);
@@ -36,7 +36,7 @@ local azerite = {
     ["Azerite Crystal"] = "175",
     ["Sack of Azerite"] = "300",
     ["Broken Azerite Shard"] = "25",    
-    ["Rotting Wooden Chest"] = "150trap",
+    ["Rotting Wooden Chest"] = "150+trap",
     ["Wooden Strongbox"] = "50",
     ["Reinforced Chest"] = "150"
 }
@@ -49,7 +49,7 @@ local misc = {
     ["Starfish"] = "stun + 10%dmg"
 }
 
-function addShrineTooltip()
+function IslandExpeditionHelper_addShrineTooltip()
     local key = GameTooltipTextLeft1:GetText()
     --print("shrine",key)
     if key ~= nil and shrines[key] ~= nil and GameTooltipTextLeft2:GetText() == nil then -- shrines only have one line
@@ -63,7 +63,7 @@ function addShrineTooltip()
     end
 end
 
-function addValueToTooltip()
+function IslandExpeditionHelper_addValueToTooltip()
     local key = GameTooltipTextLeft1:GetText()
     if key ~= nil and azerite[key] ~= nil then
         local infoText = azerite[key]

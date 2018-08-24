@@ -1,5 +1,5 @@
 ## Title: IslandExpeditionHelper
-## Version: 1.0.0
+## Version: 0.1
 ## Author: Ignifazius
 ## Interface: 80000
 ## Notes: Adds tooltips for Expeditions.
@@ -7,5 +7,5 @@
 
 IslandExpeditionHelper.lua
 localization.core.lua
-localization.de.lua
+#localization.de.lua
 localization.en.lua
