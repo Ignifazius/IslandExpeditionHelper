@@ -1,13 +1,14 @@
 local _, L = ...;
+local TAG = "IEH:"
 
 local eventResponseFrame = CreateFrame("Frame", "Helper")
-	--eventResponseFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
+	eventResponseFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
 	eventResponseFrame:RegisterEvent("CURSOR_UPDATE");
 
 
 local function eventHandler(self, event)
     if (event == "UPDATE_MOUSEOVER_UNIT") then
-        
+        function__wait(0.1, IslandExpeditionHelper_addValueToTooltip)
     elseif (event == "CURSOR_UPDATE") then
         function__wait(0.1, IslandExpeditionHelper_addShrineTooltip)
         function__wait(0.1, IslandExpeditionHelper_addValueToTooltip)
@@ -31,14 +32,79 @@ local shrines = { -- [""] = {["positiv"] = "", ["negativ"] = ""},
 }
 
 local azerite = {
-    ["Azerite Shard"] = "75",
-    ["Azerite Chunk"] = "125",
-    ["Azerite Crystal"] = "175",
-    ["Sack of Azerite"] = "300",
-    ["Broken Azerite Shard"] = "25",    
-    ["Rotting Wooden Chest"] = "150+trap",
-    ["Wooden Strongbox"] = "50",
-    ["Reinforced Chest"] = "150"
+    --["Meeting Stone"] = 666,
+    ["Aerin Skyhammer"] = 400,
+    ["Ancient Forest-Walker"] = 150,
+    ["Arwan Beastheart"] = 400,
+    ["Azerite Chunk"] = 125,
+    ["Azerite Crystal"] = 175,
+    ["Azerite Shard"] = 75,
+    ["Bag of Azerite"] = 100,
+    ["Breakbeak Bonepicker"] = 150,
+    ["Breakbeak Hatchling"] = 2,
+    ["Breakbeak Scavenger"] = 10,
+    ["Breakbeak Vulture"] = 6,
+    ["Brightscale Coilfang"] = 150,
+    ["Brightscale Hatchling"] = 2,
+    ["Brightscale Screecher"] = 10,
+    ["Brightscale Wind Serpent"] = 6,
+    ["Broken Azerite Shard"] = 25,
+    ["Crag Rager"] = 10,
+    ["Cragburster"] = 200,
+    ["Deepstone Crusher"] = 150,
+    ["Dryad Grove-Tender"] = 150,
+    ["Earth Elemental"] = 6,
+    ["Eso the Fathom-Hunter"] = 300,
+    ["Evergrove Keeper"] = 150,
+    ["Garnetback Striker"] = 10,
+    ["Garnetback Worm"] = 6,
+    ["Grrl"] = 200,
+    ["Guuru the Mountain-Breaker"] = 300,
+    ["Malachite"] = 200,
+    ["Mechanical Guardhound"] = 6,
+    ["Mischievous Flood"] = 10,
+    ["Mrogan"] = 300,
+    ["Muckfin Murloc"] = 6,
+    ["Muckfin Oracle"] = 10,
+    ["Muckfin Puddlejumper"] = 2,
+    ["Muckfin Tidehunter"] = 6,
+    ["Nasira Morningfrost"] = 300,
+    ["Nettlevine Sprite"] = 6,
+    ["Old Chest"] = 100,
+    ["Old Li"] = 400,
+    ["Pouch of Azerite"] = 50,
+    ["Profit-O-Matic"] = 10,
+    ["Razorfin Aqualyte"] = 10,
+    ["Razorfin Impaler"] = 10,
+    ["Razorfin Javelineer"] = 6,
+    ["Razorfin Jinyu"] = 6,
+    ["Razorfin Watershaper"] = 150,
+    ["Razorfin Waveguard"] = 150,
+    ["Reinforced Chest"] = 150,
+    ["Rotting Wooden Chest"] = 150,
+    ["Rumbling Earth"] = 2,
+    ["Sack of Azerite"] = 300,
+    ["Safety Inspection Bot"] = 2,
+    ["Senior Producer Gixi"] = 300,
+    ["Tidestriker Ocho"] = 200,
+    ["Trickle"] = 200,
+    ["Venture Goon"] = 6,
+    ["Venture Inspector"] = 6,
+    ["Venture Oaf"] = 10,
+    ["Venture Surveyor"] = 10,
+    ["Verdant Dryad"] = 10,
+    ["Verdant Flytrap"] = 6,
+    ["Verdant Keeper"] = 10,
+    ["Verdant Lasher"] = 2,
+    ["Verdant Spitter"] = 6,
+    ["Verdant Tender"] = 10,
+    ["Verdant Treant"] = 10,
+    ["Vicejaw Crocolisk"] = 6,
+    ["Water Spirit"] = 6,
+    ["Witherbranch Berserker"] = 150,
+    ["Witherbranch Warrior"] = 6,
+    ["Wooden Strongbox"] = 50,
+    ["Zgordo the Brutalizer"] = 300
 }
 
 local food = {
@@ -52,12 +118,12 @@ local misc = {
 function IslandExpeditionHelper_addShrineTooltip()
     local key = GameTooltipTextLeft1:GetText()
     --print("shrine",key)
-    if key ~= nil and shrines[key] ~= nil and GameTooltipTextLeft2:GetText() == nil then -- shrines only have one line
+    if key ~= nil and shrines[key] ~= nil and checkTooltipForDuplicates() == nil then
         local infoTextP = shrines[key]["positiv"]
         local infoTextN = shrines[key]["negativ"]
-        if infoTextP ~= nil and infoTextN ~= nil then
-            GameTooltip:AddLine(L[infoTextP], 0, 1, 0, 1, 0)
-            GameTooltip:AddLine(L[infoTextN], 1, 0, 0, 1, 0)
+        if infoTextP ~= nil and infoTextN ~= nil and checkTooltipForDuplicates() then
+            GameTooltip:AddLine("IEH: "..L[infoTextP], 0, 1, 0, 1, 0)
+            GameTooltip:AddLine("IEH: "..L[infoTextN], 1, 0, 0, 1, 0)
             GameTooltip:Show()
         end
     end
@@ -67,13 +133,23 @@ function IslandExpeditionHelper_addValueToTooltip()
     local key = GameTooltipTextLeft1:GetText()
     if key ~= nil and azerite[key] ~= nil then
         local infoText = azerite[key]
-        if infoText ~= nil then
-            GameTooltip:AddLine(infoText, 0.9, 0.8, 0.5, 1, 0)
+        if infoText ~= nil and checkTooltipForDuplicates() then
+            GameTooltip:AddLine("IEH: "..adjustToDifficulty(infoText), 0.9, 0.8, 0.5, 1, 0)
             GameTooltip:Show()
         end
     end
 end
 
+function checkTooltipForDuplicates()
+    for i=1,GameTooltip:NumLines() do
+        local tooltip=_G["GameTooltipTextLeft"..i]
+        local tt = tooltip:GetText()
+        if string.find(tt, TAG) ~= nil then
+            return false
+        end
+    end
+    return true
+end
 
 
 local waitTable = {};
@@ -106,4 +182,23 @@ function function__wait(delay, func, ...)
   tinsert(waitTable,{delay,func,{...}});
   return true;
 end
+
+
+function adjustToDifficulty(value)
+    _,_,_, diff = GetInstanceInfo()
+    if diff == "Normal" then
+        return value
+    elseif diff == "Heroic" then
+        return value*1.5
+    elseif diff == "Mythic" then
+        return value*2
+    elseif diff == "PvP" then --TODO find real value
+        return value*2
+    end
+    
+    return value;
+end
+
+
+
 
