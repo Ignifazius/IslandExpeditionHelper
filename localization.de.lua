@@ -36,5 +36,7 @@ if GetLocale() == "deDE" then
     L["Wanderer's Respite"] = ""
     L["30versa"] = "+30% Vielseitigkeit"
     L["60healTaken"] = "-60% erhaltene Heilung"
-    
+    L["Fireheart Idol"] = "Fireheart Idol"
+    L["30firedone"] = "+30% verursachter Feuerschaden"
+    L["50frosttaken"] = "+50% erlittener Frostschaden"       
 end
