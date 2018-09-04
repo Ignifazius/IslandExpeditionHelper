@@ -182,12 +182,9 @@ local misc = {
 
 function IslandExpeditionHelper_addShrineTooltip()
     local key = GameTooltipTextLeft1:GetText()
-    print("shrine",key)
-    print(key, shrines[key], checkTooltipForDuplicates())
     if key ~= nil and shrines[key] ~= nil and checkTooltipForDuplicates() then
         local infoTextP = shrines[key]["positiv"]
         local infoTextN = shrines[key]["negativ"]
-        print(infoTextN, infoTextP)
         if infoTextP ~= nil and infoTextN ~= nil then
             GameTooltip:AddLine("IEH: "..L[infoTextP], 0, 1, 0, 1, 0)
             GameTooltip:AddLine("IEH: "..L[infoTextN], 1, 0, 0, 1, 0)
