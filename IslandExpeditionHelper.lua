@@ -33,7 +33,6 @@ local shrines = { -- [""] = {["positiv"] = "", ["negativ"] = ""},
 }
 
 local azerite = {
-    ["Versammlungsstein"] = 666,
     ["Acidic Worm"] = 6,
     ["Aerin Skyhammer"] = 400,
     ["Ancient Forest-Walker"] = 150,
