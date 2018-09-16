@@ -4,14 +4,19 @@ local TAG = "IEH:"
 local eventResponseFrame = CreateFrame("Frame", "Helper")
 	eventResponseFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
 	eventResponseFrame:RegisterEvent("CURSOR_UPDATE");
+    eventResponseFrame:RegisterEvent("ADDON_LOADED");
 
 
-local function eventHandler(self, event)
+local function eventHandler(self, event, arg1)
     if (event == "UPDATE_MOUSEOVER_UNIT") then
         function__wait(0.1, IslandExpeditionHelper_addValueToTooltip)
     elseif (event == "CURSOR_UPDATE") then
         function__wait(0.1, IslandExpeditionHelper_addShrineTooltip)
         function__wait(0.1, IslandExpeditionHelper_addValueToTooltip)
+    elseif(event == "ADDON_LOADED" and arg1 == "IslandExpeditionHelper") then
+        if (GetLocale() ~= "deDE" and GetLocale() ~= "enGB" and GetLocale() ~= "enUS") then
+            print "IslandExpeditionHelper: Your language is currently NOT supported. This Addon will not work! Please consider providing some translations via the project Website. (https://wow.curseforge.com/projects/islandexpeditionhelper/localization)"
+        end
     end
 end
 eventResponseFrame:SetScript("OnEvent", eventHandler);

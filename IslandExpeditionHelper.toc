@@ -1,9 +1,10 @@
 ## Title: IslandExpeditionHelper
-## Version: 0.4
+## Version: 0.5
 ## Author: Ignifazius
 ## Interface: 80000
 ## Notes: Adds tooltips for Expeditions.
-## Notes-deDE: Fügt Toolstips für die Expeditionen hizu.
+## Notes-deDE: Fügt Toolstips für die Expeditionen hinzu.
+## OptionalDeps: ElvUI
 
 IslandExpeditionHelper.lua
 localization.core.lua
