@@ -1,10 +1,14 @@
 local _, L = ...;
 local TAG = "IEH:"
 
+local localAzeriteValues = {}
+
 local eventResponseFrame = CreateFrame("Frame", "Helper")
 	eventResponseFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
 	eventResponseFrame:RegisterEvent("CURSOR_UPDATE");
     eventResponseFrame:RegisterEvent("ADDON_LOADED");
+	eventResponseFrame:RegisterEvent("PLAYER_LOGIN")
+	eventResponseFrame:RegisterEvent("PLAYER_LOGOUT")
 
 
 local function eventHandler(self, event, arg1)
@@ -17,6 +21,10 @@ local function eventHandler(self, event, arg1)
         if (GetLocale() ~= "deDE" and GetLocale() ~= "enGB" and GetLocale() ~= "enUS") then
             print "IslandExpeditionHelper: Your language is currently NOT supported. This Addon will not work! Please consider providing some translations via the project Website. (https://wow.curseforge.com/projects/islandexpeditionhelper/localization)"
         end
+	elseif(event == "PLAYER_LOGIN") then
+		loadSV()
+	elseif(event == "PLAYER_LOGOUT") then
+		saveSV()
     end
 end
 eventResponseFrame:SetScript("OnEvent", eventHandler);
@@ -38,6 +46,7 @@ local shrines = { -- [""] = {["positiv"] = "", ["negativ"] = ""},
 }
 
 local azerite = {
+	--["Meeting Stone"] = 666,
 	["Acidic Worm"] = 6,
 	["Aerin Skyhammer"] = 400,
 	["Ancient Forest-Walker"] = 150,
@@ -163,7 +172,6 @@ local azerite = {
 	["Malachite"] = 200,
 	["Marrowbore"] = 300,
 	["Mechanical Guardhound"] = 6,
-	["Meeting Stone"] = 666,
 	["Mirelurk Assassin"] = 10,
 	["Mirelurk Bogtender"] = 6,
 	["Mirelurk Guardian"] = 10,
@@ -351,10 +359,18 @@ end
 
 function IslandExpeditionHelper_addValueToTooltip()
     local key = GameTooltipTextLeft1:GetText()
+	--print(key, azerite[key], localAzeriteValues[key])
+	--print("["..key.."]")
     if key ~= nil and azerite[key] ~= nil then
         local infoText = azerite[key]
         if infoText ~= nil and checkTooltipForDuplicates() then
             GameTooltip:AddLine("IEH: "..adjustToDifficulty(infoText), 0.9, 0.8, 0.5, 1, 0)
+            GameTooltip:Show()
+        end
+	elseif key ~= nil and localAzeriteValues ~= nil and localAzeriteValues[key] ~= nil then
+		local infoText = localAzeriteValues[key]
+        if infoText ~= nil and checkTooltipForDuplicates() then
+            GameTooltip:AddLine("IEH: "..adjustToDifficulty(infoText).." (computed)", 0.9, 0.8, 0.5, 1, 0)
             GameTooltip:Show()
         end
     end
@@ -404,6 +420,42 @@ function function__wait(delay, func, ...)
 end
 
 
+
+function myChatFilter(self, event, msg, author, ...) --TODO language strings
+	if event == "CHAT_MSG_SYSTEM" then
+		deriveAzerite(msg)
+	end	
+end
+ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM", myChatFilter)
+
+
+
+
+
+function deriveAzerite(msg)
+	--print(event, msg, author, arg1, arg2, arg3)
+	--a = string.find(msg, "Azerite Collected")
+	--print(a)
+	if string.find(msg, "Azerite Collected") ~= nil then 
+		--print("contains")
+		local foundValue, unit = string.match(msg, "(%d+) Azerite Collected.+from (.+)");
+		--print(foundValue, unit)
+		local value = adjustBackToDifficulty(foundValue)
+		--print("localAzeriteValues", localAzeriteValues[unit])
+		if localAzeriteValues[unit] == nil then
+			localAzeriteValues[unit] = value			
+			print(string.format("adding new value (%s) for unit (%s) to map", value, unit))			
+		elseif localAzeriteValues[unit] ~= nil and localAzeriteValues[unit] ~= value then
+			print(string.format("found conflicting value (map %s, found %s) for unit (%s)", value, foundValue, unit))
+			--TODO maybe override?
+		else
+			print(string.format("correct value (map %s, found %s) for unit (%s)", value, foundValue, unit))
+		end
+		
+	end	
+end
+
+
 function adjustToDifficulty(value)
     _,_,_, diff = GetInstanceInfo()
     if diff == "Normal" then
@@ -414,6 +466,29 @@ function adjustToDifficulty(value)
         return value*2
     elseif diff == "PvP" then --TODO find real value
         return value*2
+    end
+    
+    return value;
+end
+
+function loadSV()
+	localAzeriteValues = AzeriteValues
+end
+
+function saveSV()
+	AzeriteValues = localAzeriteValues;
+end
+
+function adjustBackToDifficulty(value)
+    _,_,_, diff = GetInstanceInfo()
+    if diff == "Normal" then
+        return value
+    elseif diff == "Heroic" then
+        return value/1.5
+    elseif diff == "Mythic" then
+        return value/2
+    elseif diff == "PvP" then --TODO find real value
+        return value/2
     end
     
     return value;

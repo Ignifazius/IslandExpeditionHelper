@@ -5,6 +5,7 @@
 ## Notes: Adds tooltips for Expeditions.
 ## Notes-deDE: Fügt Toolstips für die Expeditionen hinzu.
 ## OptionalDeps: ElvUI
+##SavedVariables: AzeriteValues
 
 IslandExpeditionHelper.lua
 localization.core.lua
