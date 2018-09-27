@@ -1,5 +1,5 @@
 ## Title: IslandExpeditionHelper
-## Version: 0.5
+## Version: 0.6
 ## Author: Ignifazius
 ## Interface: 80000
 ## Notes: Adds tooltips for Expeditions.

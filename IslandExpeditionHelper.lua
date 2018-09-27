@@ -25,6 +25,7 @@ local function eventHandler(self, event, arg1)
         end
 	elseif(event == "PLAYER_LOGIN") then
 		loadSV()
+		createMenuFrame()
 	elseif(event == "PLAYER_LOGOUT") then
 		saveSV()
     end
@@ -501,4 +502,50 @@ function saveSV()
 	table.sort(localAzeriteValues)
 	AzeriteValues = localAzeriteValues;
 	AzeriteSpam = removeAzeriteSpam
+end
+
+
+local configFrame = CreateFrame('Frame');
+local configTitle = nil;
+local configWelcome = nil;
+
+function refresh()
+	configWelcome:SetChecked(AzeriteSpam)
+end
+
+function createMenuFrame()
+	createConfigFrame()
+	configFrame.name = "Island Exploration Helper";
+	configFrame.refresh = refresh;
+	InterfaceOptions_AddCategory(configFrame)
+end
+
+
+function createConfigFrame()
+	configTitle = configFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    configTitle:SetPoint("TOPLEFT", 16, -16)
+    configTitle:SetText("Island Expedition Helper")
+	
+	configWelcome = createCheckbox(
+    	L["Disable Azerite Spam"],
+    	L["Hide all Azerite related collection messages from the chat."],
+    	function(self, value) AccountAchievementFilter_DisplayWelcome(value) end)
+    configWelcome:SetPoint("TOPLEFT", configTitle, "BOTTOMLEFT", 0, -8)
+	
+	configBottom = configFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    configBottom:SetPoint("BOTTOMLEFT", 16, 16)
+    configBottom:SetText("If you want to help translate this addon, visit\n https://wow.curseforge.com/projects/islandexpeditionhelper/ \nor write me a PM on CurseForge. \nCurrently only German and English translations are available.")
+end
+
+function createCheckbox(label, description, onClick)
+	local check = CreateFrame("CheckButton", "IAConfigCheckbox" .. label, configFrame, "InterfaceOptionsCheckButtonTemplate")
+	check:SetScript("OnClick", function(self)
+		PlaySound(self:GetChecked() and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+		onClick(self, self:GetChecked() and true or false)
+	end)
+	check.label = _G[check:GetName() .. "Text"]
+	check.label:SetText(label)
+	check.tooltipText = label
+	check.tooltipRequirement = description
+	return check
 end
