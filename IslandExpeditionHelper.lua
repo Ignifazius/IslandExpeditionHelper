@@ -1,3 +1,4 @@
+IslandExpeditionHelper = {}
 local _, L = ...;
 local TAG = "IEH"
 
@@ -15,19 +16,19 @@ local eventResponseFrame = CreateFrame("Frame", "Helper")
 
 local function eventHandler(self, event, arg1)
     if (event == "UPDATE_MOUSEOVER_UNIT") then
-        function__wait(0.1, IslandExpeditionHelper_addValueToTooltip)
+        IslandExpeditionHelper.function__wait(0.1, IslandExpeditionHelper.addValueToTooltip)
     elseif (event == "CURSOR_UPDATE") then
-        function__wait(0.1, IslandExpeditionHelper_addShrineTooltip)
-        function__wait(0.1, IslandExpeditionHelper_addValueToTooltip)
+        IslandExpeditionHelper.function__wait(0.1, IslandExpeditionHelper.addShrineTooltip)
+        IslandExpeditionHelper.function__wait(0.1, IslandExpeditionHelper.addValueToTooltip)
     elseif(event == "ADDON_LOADED" and arg1 == "IslandExpeditionHelper") then
         if (GetLocale() ~= "deDE" and GetLocale() ~= "enGB" and GetLocale() ~= "enUS") then
             print "IslandExpeditionHelper: Your language is currently NOT supported. This Addon will not work! Please consider providing some translations via the project Website. (https://wow.curseforge.com/projects/islandexpeditionhelper/localization)"
         end
 	elseif(event == "PLAYER_LOGIN") then
-		loadSV()
-		createMenuFrame()
+		IslandExpeditionHelper.loadSV()
+		IslandExpeditionHelper.createMenuFrame()
 	elseif(event == "PLAYER_LOGOUT") then
-		saveSV()
+		IslandExpeditionHelper.saveSV()
     end
 end
 eventResponseFrame:SetScript("OnEvent", eventHandler);
@@ -337,11 +338,11 @@ local azerite = {
 	["Zgordo the Brutalizer"] = 300
 }
 
-function IslandExpeditionHelper_addShrineTooltip()
+function IslandExpeditionHelper.addShrineTooltip()
     local tkey = GameTooltipTextLeft1:GetText()
     local key = L[tkey]
 
-    if key ~= nil and shrines[key] ~= nil and checkTooltipForDuplicates() then
+    if key ~= nil and shrines[key] ~= nil and IslandExpeditionHelper.checkTooltipForDuplicates() then
         local infoTextP = shrines[key]["positiv"]
         local infoTextN = shrines[key]["negativ"]
         if infoTextP ~= nil and infoTextN ~= nil then
@@ -352,7 +353,7 @@ function IslandExpeditionHelper_addShrineTooltip()
     end
 end
 
-function IslandExpeditionHelper_addValueToTooltip()
+function IslandExpeditionHelper.addValueToTooltip()
     local key = GameTooltipTextLeft1:GetText()
 	--print(key)
 	if key ~= nil then
@@ -364,14 +365,14 @@ function IslandExpeditionHelper_addValueToTooltip()
 			infoText = localAzeriteValues[key]
 			prefix = "IEH*: "
 		end
-		if infoText ~= nil and checkTooltipForDuplicates() then
-			GameTooltip:AddLine(prefix..adjustToDifficulty(infoText), 0.9, 0.8, 0.5, 1, 0)
+		if infoText ~= nil and IslandExpeditionHelper.checkTooltipForDuplicates() then
+			GameTooltip:AddLine(prefix..IslandExpeditionHelper.adjustToDifficulty(infoText), 0.9, 0.8, 0.5, 1, 0)
 			GameTooltip:Show()
 		end
 	end
 end
 
-function checkTooltipForDuplicates()
+function IslandExpeditionHelper.checkTooltipForDuplicates()
     for i=1,GameTooltip:NumLines() do
         local tooltip=_G["GameTooltipTextLeft"..i]
         local tt = tooltip:GetText()
@@ -386,7 +387,7 @@ end
 local waitTable = {};
 local waitFrame = nil;
 
-function function__wait(delay, func, ...)
+function IslandExpeditionHelper.function__wait(delay, func, ...)
   if(type(delay)~="number" or type(func)~="function") then
     return false;
   end
@@ -414,21 +415,21 @@ function function__wait(delay, func, ...)
   return true;
 end
 
-function myChatFilter(self, event, msg, author, ...) 
+function IslandExpeditionHelper.myChatFilter(self, event, msg, author, ...) 
 	if event == "CHAT_MSG_SYSTEM" then
 		--print(event, msg)
-		return deriveAzerite(msg)
+		return IslandExpeditionHelper.deriveAzerite(msg)
 	end	
 end
-ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM", myChatFilter)
+ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM", IslandExpeditionHelper.myChatFilter)
 
-function deriveAzerite(msg) --TODO language strings
+function IslandExpeditionHelper.deriveAzerite(msg) --TODO language strings
 	--print(msg, L["azeriteCollected"], string.find(msg, L["azeriteCollected"]))
 	if string.find(msg, L["azeriteCollected"]) ~= nil then 
 		local foundValue, unit = string.match(msg, L["azeriteString"]);
 		--print(L["azeriteString"])
 		--print(foundValue, unit)
-		local value = adjustBackToDifficulty(foundValue)
+		local value = IslandExpeditionHelper.adjustBackToDifficulty(foundValue)
 		if localAzeriteValues[unit] == nil then
 			localAzeriteValues[unit] = value
 						
@@ -447,7 +448,7 @@ function deriveAzerite(msg) --TODO language strings
 end
 
 
-function adjustToDifficulty(value)
+function IslandExpeditionHelper.adjustToDifficulty(value)
     _,_,_, diff = GetInstanceInfo()
     if diff == "Heroic" then
         return value*1.5
@@ -458,7 +459,7 @@ function adjustToDifficulty(value)
 end
 
 
-function removeValues() -- TODO translations
+function IslandExpeditionHelper.removeValues() -- TODO translations
 	localAzeriteValues["\"Stabby\" Lottie"] = nil
 	localAzeriteValues["Anchorite Lanna"] = nil
 	localAzeriteValues["Archmage Tamuura"] = nil
@@ -479,7 +480,7 @@ function removeValues() -- TODO translations
 	localAzeriteValues["Vindicator Baatul"] = nil
 end
 
-function adjustBackToDifficulty(value)
+function IslandExpeditionHelper.adjustBackToDifficulty(value)
     _,_,_, diff = GetInstanceInfo()
     if diff == "Heroic" then
         return value/1.5
@@ -489,7 +490,7 @@ function adjustBackToDifficulty(value)
     return value; -- "Normal"
 end
 
-function loadSV()
+function IslandExpeditionHelper.loadSV()
 	localAzeriteValues = AzeriteValues
 	removeAzeriteSpam = AzeriteSpam
 	if removeAzeriteSpam == nil then
@@ -497,8 +498,8 @@ function loadSV()
 	end
 end
 
-function saveSV()
-	removeValues()
+function IslandExpeditionHelper.saveSV()
+	IslandExpeditionHelper.removeValues()
 	table.sort(localAzeriteValues)
 	AzeriteValues = localAzeriteValues;
 	AzeriteSpam = removeAzeriteSpam
@@ -507,37 +508,41 @@ end
 
 local configFrame = CreateFrame('Frame');
 local configTitle = nil;
-local configWelcome = nil;
+local configSpam = nil;
 
-function refresh()
-	configWelcome:SetChecked(AzeriteSpam)
+function IslandExpeditionHelper.refresh()
+	configSpam:SetChecked(AzeriteSpam)
 end
 
-function createMenuFrame()
-	createConfigFrame()
+function IslandExpeditionHelper.createMenuFrame()
+	IslandExpeditionHelper.createConfigFrame()
 	configFrame.name = "Island Exploration Helper";
-	configFrame.refresh = refresh;
+	configFrame.refresh = IslandExpeditionHelper.refresh();
 	InterfaceOptions_AddCategory(configFrame)
 end
 
 
-function createConfigFrame()
+function IslandExpeditionHelper.createConfigFrame()
 	configTitle = configFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     configTitle:SetPoint("TOPLEFT", 16, -16)
     configTitle:SetText("Island Expedition Helper")
 	
-	configWelcome = createCheckbox(
+	configSpam = IslandExpeditionHelper.createCheckbox(
     	L["Disable Azerite Spam"],
     	L["Hide all Azerite related collection messages from the chat."],
-    	function(self, value) AccountAchievementFilter_DisplayWelcome(value) end)
-    configWelcome:SetPoint("TOPLEFT", configTitle, "BOTTOMLEFT", 0, -8)
+    	function(self, value) IslandExpeditionHelper.DisplaySpam(value) end)
+    configSpam:SetPoint("TOPLEFT", configTitle, "BOTTOMLEFT", 0, -8)
 	
 	configBottom = configFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     configBottom:SetPoint("BOTTOMLEFT", 16, 16)
     configBottom:SetText("If you want to help translate this addon, visit\n https://wow.curseforge.com/projects/islandexpeditionhelper/ \nor write me a PM on CurseForge. \nCurrently only German and English translations are available.")
 end
 
-function createCheckbox(label, description, onClick)
+function IslandExpeditionHelper.DisplaySpam(bool)
+	removeAzeriteSpam = bool;
+end
+
+function IslandExpeditionHelper.createCheckbox(label, description, onClick)
 	local check = CreateFrame("CheckButton", "IAConfigCheckbox" .. label, configFrame, "InterfaceOptionsCheckButtonTemplate")
 	check:SetScript("OnClick", function(self)
 		PlaySound(self:GetChecked() and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
