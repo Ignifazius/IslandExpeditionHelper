@@ -3,6 +3,8 @@ local TAG = "IEH"
 
 local localAzeriteValues = {}
 
+local removeAzeriteSpam
+
 local eventResponseFrame = CreateFrame("Frame", "Helper")
 	eventResponseFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
 	eventResponseFrame:RegisterEvent("CURSOR_UPDATE");
@@ -413,24 +415,33 @@ end
 
 function myChatFilter(self, event, msg, author, ...) 
 	if event == "CHAT_MSG_SYSTEM" then
-		deriveAzerite(msg)
+		--print(event, msg)
+		return deriveAzerite(msg)
 	end	
 end
 ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM", myChatFilter)
 
 function deriveAzerite(msg) --TODO language strings
-	if string.find(msg, "Azerite Collected") ~= nil then 
-		local foundValue, unit = string.match(msg, "(%d+) Azerite Collected.+from (.+)%|r");
+	--print(msg, L["azeriteCollected"], string.find(msg, L["azeriteCollected"]))
+	if string.find(msg, L["azeriteCollected"]) ~= nil then 
+		local foundValue, unit = string.match(msg, L["azeriteString"]);
+		--print(L["azeriteString"])
+		--print(foundValue, unit)
 		local value = adjustBackToDifficulty(foundValue)
 		if localAzeriteValues[unit] == nil then
-			localAzeriteValues[unit] = value			
+			localAzeriteValues[unit] = value
+						
 			--print(string.format("adding new value (%s) for unit (%s) to map", value, unit))			
 		--[[elseif localAzeriteValues[unit] ~= nil and localAzeriteValues[unit] ~= value then
-			print(string.format("found conflicting value (map %s, found %s) for unit (%s)", value, foundValue, unit))
+			--print(string.format("found conflicting value (map %s, found %s) for unit (%s)", value, foundValue, unit))
 			--TODO maybe override?
 		else
-			print(string.format("correct value (map %s, found %s) for unit (%s)", value, foundValue, unit))]]--
-		end			
+			--print(string.format("correct value (map %s, found %s) for unit (%s)", value, foundValue, unit))]]--
+		end	
+		if removeAzeriteSpam then
+			--print("remove spam", msg)
+			return true
+		end		
 	end	
 end
 
@@ -479,10 +490,15 @@ end
 
 function loadSV()
 	localAzeriteValues = AzeriteValues
+	removeAzeriteSpam = AzeriteSpam
+	if removeAzeriteSpam == nil then
+		removeAzeriteSpam = false
+	end
 end
 
 function saveSV()
 	removeValues()
 	table.sort(localAzeriteValues)
 	AzeriteValues = localAzeriteValues;
+	AzeriteSpam = removeAzeriteSpam
 end

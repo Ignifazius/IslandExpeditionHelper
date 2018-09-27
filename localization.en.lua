@@ -38,5 +38,7 @@ if ((GetLocale() == "enUS") or (GetLocale() == "enGB")) then
     L["60healTaken"] = "-60% Healing Received"  
     L["Fireheart Idol"] = "Fireheart Idol"
     L["30firedone"] = "+30% Fire Damage Done"
-    L["50frosttaken"] = "+50% Frost Damage Taken"    
+    L["50frosttaken"] = "+50% Frost Damage Taken"
+	L["azeriteString"] = "(%d+) Azerite Collected.+from (.+)%|r"	
+	L["azeriteCollected"] = "Azerite Collected"
 end

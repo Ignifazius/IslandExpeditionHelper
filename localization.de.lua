@@ -39,6 +39,7 @@ if GetLocale() == "deDE" then
     L["Feuerherzgötze"] = "Fireheart Idol"
     L["30firedone"] = "+30% verursachter Feuerschaden"
     L["50frosttaken"] = "+50% erlittener Frostschaden"    
-    
+    L["azeriteString"] = "(%d+) Azerit.+von (.+)|r gesammelt"
+	L["azeriteCollected"] = "Azerit.+von.+gesammelt"
     --L["Versammlungsstein"] = "Meeting Stone"
 end
