@@ -1,5 +1,5 @@
 local _, L = ...;
-local TAG = "IEH:"
+local TAG = "IEH"
 
 local localAzeriteValues = {}
 
@@ -351,13 +351,15 @@ end
 
 function IslandExpeditionHelper_addValueToTooltip()
     local key = GameTooltipTextLeft1:GetText()
+	--print(key)
 	if key ~= nil then
+	local infoText, prefix
 		if azerite[key] ~= nil then
-			local infoText = azerite[key]
-			local prefix = "IEH: "
+			infoText = azerite[key]
+			prefix = "IEH: "
 		elseif localAzeriteValues ~= nil and localAzeriteValues[key] ~= nil then
-			local infoText = localAzeriteValues[key]
-			local prefix = "IEH*: "
+			infoText = localAzeriteValues[key]
+			prefix = "IEH*: "
 		end
 		if infoText ~= nil and checkTooltipForDuplicates() then
 			GameTooltip:AddLine(prefix..adjustToDifficulty(infoText), 0.9, 0.8, 0.5, 1, 0)
