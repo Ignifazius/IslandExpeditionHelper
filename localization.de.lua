@@ -40,9 +40,6 @@ if GetLocale() == "deDE" then
     L["30firedone"] = "+30% verursachter Feuerschaden"
     L["50frosttaken"] = "+50% erlittener Frostschaden"
 	
-    L["azeriteString"] = "(%d+) Azerit.+von (.+)|r gesammelt"
-	L["azeriteCollected"] = "Azerit.+von.+gesammelt"
-	
 	L["Disable Azerite Spam"] = "Azeritspam deaktivieren"
     L["Hide all Azerite related collection messages from the chat."] = "Versteckt alle azeritbezogenen Meldungen aus dem Chat."
 end
