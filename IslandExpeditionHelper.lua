@@ -2,28 +2,34 @@ IslandExpeditionHelper = {}
 local _, L = ...;
 local TAG = "IEH"
 
-local localAzeriteValues = {}
+local azeriteValuesLocal = {}
 
 local removeAzeriteSpam
 
 local eventResponseFrame = CreateFrame("Frame", "Helper")
-	eventResponseFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
-	eventResponseFrame:RegisterEvent("CURSOR_UPDATE");
     eventResponseFrame:RegisterEvent("ADDON_LOADED");
 	eventResponseFrame:RegisterEvent("PLAYER_LOGIN")
 	eventResponseFrame:RegisterEvent("PLAYER_LOGOUT")
-	--eventResponseFrame:RegisterEvent("ISLAND_AZERITE_GAIN")
-	--eventResponseFrame:RegisterEvent("ISLAND_COMPLETED")
+	eventResponseFrame:RegisterEvent("ZONE_CHANGED")
+	eventResponseFrame:RegisterEvent("ZONE_CHANGED_INDOORS")
+	eventResponseFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+	--eventResponseFrame:RegisterEvent("ISLANDS_QUEUE_OPEN")
+	--eventResponseFrame:RegisterEvent("ISLANDS_QUEUE_CLOSE")
 	
 
+local EXP_MAP_IDS = {
+	[1034] = "Verdant Wilds", -- 1882
+	[1033] = "Rotten Mire", --1892
+	[1032] = "Skittering Hollow"--, --1898
+	--[1] = "Dread Chain", --1893
+	--[2] = "Whispering Reef", --1883
+	--[3] = "Molten Clay", --1897
+	--[4] = "Ungol Ruins"
+}
 local azeriteGainString = string.gsub(AZERITE_ISLANDS_XP_GAIN, "%%d", "(%%d+)", 1)
 azeriteGainString = string.gsub(azeriteGainString, "%%s", "(.+)", 1)
 
 local azeriteGainStringShort = string.gsub(AZERITE_ISLAND_POWER_GAIN_SHORT, "+%%s ", "", 1)
-
-
-
-	
 
 local function eventHandler(self, event, arg1, arg2, arg3, arg4, arg5)
     if (event == "UPDATE_MOUSEOVER_UNIT") then
@@ -33,32 +39,57 @@ local function eventHandler(self, event, arg1, arg2, arg3, arg4, arg5)
         IslandExpeditionHelper.function__wait(0.1, IslandExpeditionHelper.addValueToTooltip)
     elseif(event == "ADDON_LOADED" and arg1 == "IslandExpeditionHelper") then
         if (GetLocale() ~= "deDE" and GetLocale() ~= "enGB" and GetLocale() ~= "enUS") then
-            print "IslandExpeditionHelper: Your language is currently NOT supported. This addon will NOT work! Please consider providing some translations via the projects website: https://wow.curseforge.com/projects/islandexpeditionhelper"
+            print("IslandExpeditionHelper: Your language is currently NOT fully supported. This addon will only work partially! Please consider providing some translations via the projects website: https://wow.curseforge.com/projects/islandexpeditionhelper")
         end
 	elseif(event == "PLAYER_LOGIN") then
 		IslandExpeditionHelper.loadSV()
 		IslandExpeditionHelper.createMenuFrame()
+		IslandExpeditionHelper.toggleAddon()
 	elseif(event == "PLAYER_LOGOUT") then
 		IslandExpeditionHelper.saveSV()
-	--[[elseif event == "ISLAND_AZERITE_GAIN" then
-		print(event, arg1, arg2, arg3, arg4, arg5)
-		-- arg1 amount -- number
-		-- arg1 gainedByPlayer -- boolean -> "did i myself loot it?"
-		-- arg1 factionindex -- 1 -> alliance
-		-- arg1 gainedBy -- Player-580-06E6A266 
-		-- arg1 gainedFrom Creature-0-3889-1893-15970-130638-000630CAA0
-		
-		--TODO extended azerite messages?
 	elseif event == "ISLAND_COMPLETED" then
-		--arg1 mapid  	-- dread chain 1893
-						-- rotten mire 1892
-		--arg2 winner //1: alliance
-		print(event, arg1, arg2)
-		--TODO Scoreboard?]]--
-    end
+		IslandExpeditionHelper.unregisterAddon()		
+    end			  
+	if event == "ZONE_CHANGED_NEW_AREA" then --entering/leaving expedition
+		IslandExpeditionHelper.toggleAddon()
+	end
 end
 eventResponseFrame:SetScript("OnEvent", eventHandler);
 
+function IslandExpeditionHelper.registerAddon()
+	eventResponseFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
+	eventResponseFrame:RegisterEvent("CURSOR_UPDATE");
+	--eventResponseFrame:RegisterEvent("ISLAND_AZERITE_GAIN")
+	eventResponseFrame:RegisterEvent("ISLAND_COMPLETED")
+	print("IslandExpeditionHelper loaded")
+end
+
+function IslandExpeditionHelper.unregisterAddon()
+	eventResponseFrame:UnregisterEvent("UPDATE_MOUSEOVER_UNIT");
+	eventResponseFrame:UnregisterEvent("CURSOR_UPDATE");
+	--eventResponseFrame:UnregisterEvent("ISLAND_AZERITE_GAIN")
+	eventResponseFrame:UnregisterEvent("ISLAND_COMPLETED")
+	print("IslandExpeditionHelper unloaded")
+end
+
+function IslandExpeditionHelper.toggleAddon() 
+	if IslandExpeditionHelper.isInExpedition() then
+		IslandExpeditionHelper.registerAddon()
+	else 
+		IslandExpeditionHelper.unregisterAddon()
+	end
+end
+
+function IslandExpeditionHelper.isInExpedition()
+	local mapid = C_Map.GetBestMapForUnit("player");
+	--print(EXP_MAP_IDS[mapid])
+	if EXP_MAP_IDS[mapid] ~= nil then
+		--print("in Expedition Zone")
+		return true
+	end
+	--print("not in Expedition Zone")
+	return false
+end											   
 local shrines = { -- [""] = {["positiv"] = "", ["negativ"] = ""},
     ["Altar of the Sea"] = {["positiv"] = "30Haste", ["negativ"] = "Periodic Frost Damage"}, -- 272644
     ["Cursed Offering"] = {["positiv"] = "30mastery", ["negativ"] = "50health"}, -- 277523
@@ -387,8 +418,8 @@ function IslandExpeditionHelper.addValueToTooltip()
 		if azerite[key] ~= nil then
 			infoText = azerite[key]
 			prefix = "IEH: "
-		elseif localAzeriteValues ~= nil and localAzeriteValues[key] ~= nil then
-			infoText = localAzeriteValues[key]
+		elseif azeriteValuesLocal ~= nil and azeriteValuesLocal[key] ~= nil then
+			infoText = azeriteValuesLocal[key]
 			prefix = "IEH*: "
 		end
 		if infoText ~= nil and IslandExpeditionHelper.checkTooltipForDuplicates() then
@@ -402,7 +433,7 @@ function IslandExpeditionHelper.checkTooltipForDuplicates()
     for i=1,GameTooltip:NumLines() do
         local tooltip=_G["GameTooltipTextLeft"..i]
         local tt = tooltip:GetText()
-        if string.find(tt, TAG) ~= nil then
+        if tt ~= nil and string.find(tt, TAG) ~= nil then
             return false
         end
     end
@@ -453,13 +484,13 @@ function IslandExpeditionHelper.deriveAzerite(msg)
 	if string.find(msg, azeriteGainStringShort) ~= nil then 
 		local foundValue, unit = string.match(msg, azeriteGainString)
 		--print(L["azeriteString"])
-		print(foundValue, unit)
+		--print(foundValue, unit)
 		local value = IslandExpeditionHelper.adjustBackToDifficulty(foundValue)
-		if localAzeriteValues[unit] == nil then
-			localAzeriteValues[unit] = value
+		if azeriteValuesLocal[unit] == nil then
+			azeriteValuesLocal[unit] = value
 						
 			--print(string.format("adding new value (%s) for unit (%s) to map", value, unit))			
-		--[[elseif localAzeriteValues[unit] ~= nil and localAzeriteValues[unit] ~= value then
+		--[[elseif azeriteValuesLocal[unit] ~= nil and azeriteValuesLocal[unit] ~= value then
 			--print(string.format("found conflicting value (map %s, found %s) for unit (%s)", value, foundValue, unit))
 			--TODO maybe override?
 		else
@@ -486,44 +517,44 @@ end
 
 function IslandExpeditionHelper.removeValues() -- TODO translations
 	--Alliance NPCs
-	localAzeriteValues["\"Stabby\" Lottie"] = nil
-	localAzeriteValues["Anchorite Lanna"] = nil
-	localAzeriteValues["Archmage Tamuura"] = nil
-	localAzeriteValues["Briona the Bloodthirsty"] = nil
-	localAzeriteValues["Dizzy Dina"] = nil
-	localAzeriteValues["Duskrunner Lorinas"] = nil
-	localAzeriteValues["Fenrae the Cunning"] = nil
-	localAzeriteValues["Frostfencer Seraphi"] = nil
-	localAzeriteValues["Gunnolf the Ferocious"] = nil
-	localAzeriteValues["Raul the Tenacious"] = nil
-	localAzeriteValues["Razak Ironsides"] = nil
-	localAzeriteValues["Riftblade Kelain"] = nil
-	localAzeriteValues["Shadeweaver Zarra"] = nil
-	localAzeriteValues["Squallshaper Auran"] = nil
-	localAzeriteValues["Squallshaper Bryson"] = nil
-	localAzeriteValues["Tally Zapnabber"] = nil
-	localAzeriteValues["Varigg"] = nil
-	localAzeriteValues["Vindicator Baatul"] = nil
+	azeriteValuesLocal["\"Stabby\" Lottie"] = nil
+	azeriteValuesLocal["Anchorite Lanna"] = nil
+	azeriteValuesLocal["Archmage Tamuura"] = nil
+	azeriteValuesLocal["Briona the Bloodthirsty"] = nil
+	azeriteValuesLocal["Dizzy Dina"] = nil
+	azeriteValuesLocal["Duskrunner Lorinas"] = nil
+	azeriteValuesLocal["Fenrae the Cunning"] = nil
+	azeriteValuesLocal["Frostfencer Seraphi"] = nil
+	azeriteValuesLocal["Gunnolf the Ferocious"] = nil
+	azeriteValuesLocal["Raul the Tenacious"] = nil
+	azeriteValuesLocal["Razak Ironsides"] = nil
+	azeriteValuesLocal["Riftblade Kelain"] = nil
+	azeriteValuesLocal["Shadeweaver Zarra"] = nil
+	azeriteValuesLocal["Squallshaper Auran"] = nil
+	azeriteValuesLocal["Squallshaper Bryson"] = nil
+	azeriteValuesLocal["Tally Zapnabber"] = nil
+	azeriteValuesLocal["Varigg"] = nil
+	azeriteValuesLocal["Vindicator Baatul"] = nil
 	
 	--Horde NPCs
-	localAzeriteValues["Gazlowe"] = nil
-	localAzeriteValues["Skaggit"] = nil
-	localAzeriteValues["Dorp"] = nil
-	localAzeriteValues["Astralite Visara"] = nil
-	localAzeriteValues["Rune Scribe Lusaris"] = nil
-	localAzeriteValues["Phoenix Mage Ryleia"] = nil
-	localAzeriteValues["Berserker Zar'ri"] = nil
-	localAzeriteValues["Witch Doctor Unbugu"] = nil
-	localAzeriteValues["Spiritwalker Quura"] = nil
-	localAzeriteValues["Lady Sena"] = nil
-	localAzeriteValues["Captain Greenbelly "] = nil
-	localAzeriteValues["Sneaky Pete"] = nil
-	localAzeriteValues["Moonscythe Pelani"] = nil
-	localAzeriteValues["Phoenix Mage Rhydras"] = nil
-	localAzeriteValues["Sunbringer Firasi"] = nil
-	localAzeriteValues["Shadow Hunter Ju'loa"] = nil
-	localAzeriteValues["Mahna Flamewhisper"] = nil
-	localAzeriteValues["Sunwalker Ordel"] = nil
+	azeriteValuesLocal["Gazlowe"] = nil
+	azeriteValuesLocal["Skaggit"] = nil
+	azeriteValuesLocal["Dorp"] = nil
+	azeriteValuesLocal["Astralite Visara"] = nil
+	azeriteValuesLocal["Rune Scribe Lusaris"] = nil
+	azeriteValuesLocal["Phoenix Mage Ryleia"] = nil
+	azeriteValuesLocal["Berserker Zar'ri"] = nil
+	azeriteValuesLocal["Witch Doctor Unbugu"] = nil
+	azeriteValuesLocal["Spiritwalker Quura"] = nil
+	azeriteValuesLocal["Lady Sena"] = nil
+	azeriteValuesLocal["Captain Greenbelly "] = nil
+	azeriteValuesLocal["Sneaky Pete"] = nil
+	azeriteValuesLocal["Moonscythe Pelani"] = nil
+	azeriteValuesLocal["Phoenix Mage Rhydras"] = nil
+	azeriteValuesLocal["Sunbringer Firasi"] = nil
+	azeriteValuesLocal["Shadow Hunter Ju'loa"] = nil
+	azeriteValuesLocal["Mahna Flamewhisper"] = nil
+	azeriteValuesLocal["Sunwalker Ordel"] = nil
 end
 
 function IslandExpeditionHelper.adjustBackToDifficulty(value)
@@ -537,7 +568,7 @@ function IslandExpeditionHelper.adjustBackToDifficulty(value)
 end
 
 function IslandExpeditionHelper.loadSV()
-	localAzeriteValues = AzeriteValues
+	azeriteValuesLocal = AzeriteValues
 	removeAzeriteSpam = AzeriteSpam
 	if removeAzeriteSpam == nil then
 		removeAzeriteSpam = false
@@ -546,8 +577,8 @@ end
 
 function IslandExpeditionHelper.saveSV()
 	IslandExpeditionHelper.removeValues()
-	table.sort(localAzeriteValues)
-	AzeriteValues = localAzeriteValues;
+	table.sort(azeriteValuesLocal)
+	AzeriteValues = azeriteValuesLocal;
 	AzeriteSpam = removeAzeriteSpam
 end
 

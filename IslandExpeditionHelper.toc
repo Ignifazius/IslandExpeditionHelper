@@ -1,11 +1,11 @@
 ## Title: IslandExpeditionHelper
-## Version: 0.7
+## Version: 0.8b1
 ## Author: Ignifazius
 ## Interface: 80000
 ## Notes: Adds tooltips for Expeditions.
 ## Notes-deDE: Fügt Toolstips für die Expeditionen hinzu.
 ## OptionalDeps: ElvUI
-##SavedVariables: AzeriteValues
+##SavedVariables: AzeriteValues, RealmIDlist
 ##SavedVariablesPerCharacter: AzeriteSpam
 
 IslandExpeditionHelper.lua
