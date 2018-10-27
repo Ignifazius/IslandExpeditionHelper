@@ -6,6 +6,12 @@ local azeriteValuesLocal = {}
 
 local removeAzeriteSpam
 
+local playerTable = {}
+local tempGroup = {}
+local playerIDToRealNameTable = {}
+
+local debugFlag = false;
+
 local eventResponseFrame = CreateFrame("Frame", "Helper")
     eventResponseFrame:RegisterEvent("ADDON_LOADED");
 	eventResponseFrame:RegisterEvent("PLAYER_LOGIN")
@@ -15,7 +21,6 @@ local eventResponseFrame = CreateFrame("Frame", "Helper")
 	eventResponseFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	--eventResponseFrame:RegisterEvent("ISLANDS_QUEUE_OPEN")
 	--eventResponseFrame:RegisterEvent("ISLANDS_QUEUE_CLOSE")
-	
 
 local EXP_MAP_IDS = {
 	[1034] = "Verdant Wilds", -- 1882
@@ -26,10 +31,38 @@ local EXP_MAP_IDS = {
 	--[3] = "Molten Clay", --1897
 	--[4] = "Ungol Ruins"
 }
+
 local azeriteGainString = string.gsub(AZERITE_ISLANDS_XP_GAIN, "%%d", "(%%d+)", 1)
 azeriteGainString = string.gsub(azeriteGainString, "%%s", "(.+)", 1)
 
 local azeriteGainStringShort = string.gsub(AZERITE_ISLAND_POWER_GAIN_SHORT, "+%%s ", "", 1)
+
+
+local azeriteCollectedByMe = 0;
+local azeriteCollected = 0;
+
+local idToRealmLOCAL = {
+	[531] = "Onyxia", --"Theradras", 
+	[535] = "Durotan", -- Tirion
+	[567] = "Gilneas",
+	[578] = "Arthas",
+	[580] = "Blackmoore",
+	[581] = "Blackrock",
+	[1097] = "Ysera",
+	[1098] = "Malygos",
+	[1099] = "Alleria", -- and rexxar? 0o
+	[1105] = "Zuluhed", -- Frostmourne
+	[1121] = "KultderVerdammten",
+	[1400] = "Area52",
+	[1406] = "Arygos",
+	[1408] = "DunMorogh", --"DieArguswacht",
+	[1612] = "Mal'Ganis",
+	[1618] = "DieAldor",
+	[3679] = "Aegwynn",
+	[3686] = "Antonidas",
+	[3691] = "Blackhand",
+	[3703] = "Frostwolf",
+}
 
 local function eventHandler(self, event, arg1, arg2, arg3, arg4, arg5)
     if (event == "UPDATE_MOUSEOVER_UNIT") then
@@ -47,19 +80,96 @@ local function eventHandler(self, event, arg1, arg2, arg3, arg4, arg5)
 		IslandExpeditionHelper.toggleAddon()
 	elseif(event == "PLAYER_LOGOUT") then
 		IslandExpeditionHelper.saveSV()
+	elseif event == "ISLAND_AZERITE_GAIN" then
+		--print(event, arg1, arg2, arg3, arg4, arg5)
+		-- arg1 amount -- number
+		-- arg2 gainedByPlayer -- boolean -> "did i myself loot it?"
+		-- arg3 factionindex -- 1 -> alliance, 0 -> horde
+		-- arg4 gainedBy -- Player-580-06E6A266 //567 -> Gilneas, 580 -> Blackmoore?, 1099 -> rexxar
+		-- arg5 gainedFrom Creature-0-3889-1893-15970-130638-000630CAA0
+		--print("tempGroup", IslandExpeditionHelper.getTableSize(tempGroup))
+		if IslandExpeditionHelper.getTableSize(tempGroup) == 0 then 
+			tempGroup = IslandExpeditionHelper.getParty()
+		elseif IslandExpeditionHelper.getTableSize(tempGroup) < 3 then
+			--print("size < 3")
+			tempGroup = {}
+			tempGroup = IslandExpeditionHelper.getParty()
+		end
+		local player, realm
+		--print(arg4, "==", IslandExpeditionHelper.playerIDToRealName(arg4), "?")
+		if IslandExpeditionHelper.playerIDToRealName(arg4) == arg4 then
+			--print("isplayer?", arg2)
+			if arg2 then
+				--print("isplayer!")
+				player = UnitName("player")
+				realm = GetRealmName()
+				--print(player, realm)
+				local id = IslandExpeditionHelper.getRealmIDfromPlayerID(arg4)
+				--print("0", id, idToRealm[id])
+				if id ~= nil and idToRealm[id] == nil then
+					idToRealm[id] = realm
+				end
+				if playerIDToRealNameTable[arg4] == nil then
+					playerIDToRealNameTable[arg4] = player.."-"..realm
+				else
+					IslandExpeditionHelper.dPrint(playerIDToRealNameTable[arg4].."("..arg4..") is already in list")
+				end
+			else
+				--print("not player")
+				local p, pn, pr = IslandExpeditionHelper.assumePlayer(arg4)
+				IslandExpeditionHelper.dPrint("1", p, pn, pr)
+				if p ~= arg4 and pn ~= nil and pr ~= nil then
+					local realmID = IslandExpeditionHelper.getRealmIDfromPlayerID(arg4)
+					IslandExpeditionHelper.dPrint("2",realmID, idToRealm[realmID])
+					if idToRealm[realmID] == nil then
+						idToRealm[realmID] = pr
+						if playerIDToRealNameTable[arg4] == nil then
+							playerIDToRealNameTable[arg4] = pn.."-"..pr
+						else
+							IslandExpeditionHelper.dPrint(playerIDToRealNameTable[arg4].."("..arg4..") is already in list")
+						end
+					end
+				end
+			end
+		end
+		player = IslandExpeditionHelper.playerIDToRealName(arg4)
+
+		if playerTable[player] == nil then
+			playerTable[player] = arg1
+			--print(arg4)
+		else
+			--IslandExpeditionHelper.tryResolvePlayers(player)
+			playerTable[player] = playerTable[player] + arg1
+		end
+		azeriteCollected = azeriteCollected + arg1
+		if arg2 then
+			azeriteCollectedByMe = azeriteCollectedByMe + arg1
+		end
+		--TODO extended azerite messages?
 	elseif event == "ISLAND_COMPLETED" then
+		--arg1 expid
+		--arg2 winner //1: alliance
+		print(event, arg1, arg2)
+		
+		--TODO Scoreboard?
+
+		IslandExpeditionHelper.printPlayerTable()
+		IslandExpeditionHelper.printSummary()
+		IslandExpeditionHelper.resetCollection()
 		IslandExpeditionHelper.unregisterAddon()		
-    end			  
+    end
 	if event == "ZONE_CHANGED_NEW_AREA" then --entering/leaving expedition
 		IslandExpeditionHelper.toggleAddon()
 	end
+	
+	--print(event)
 end
 eventResponseFrame:SetScript("OnEvent", eventHandler);
 
 function IslandExpeditionHelper.registerAddon()
 	eventResponseFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
 	eventResponseFrame:RegisterEvent("CURSOR_UPDATE");
-	--eventResponseFrame:RegisterEvent("ISLAND_AZERITE_GAIN")
+	eventResponseFrame:RegisterEvent("ISLAND_AZERITE_GAIN")
 	eventResponseFrame:RegisterEvent("ISLAND_COMPLETED")
 	print("IslandExpeditionHelper loaded")
 end
@@ -67,7 +177,7 @@ end
 function IslandExpeditionHelper.unregisterAddon()
 	eventResponseFrame:UnregisterEvent("UPDATE_MOUSEOVER_UNIT");
 	eventResponseFrame:UnregisterEvent("CURSOR_UPDATE");
-	--eventResponseFrame:UnregisterEvent("ISLAND_AZERITE_GAIN")
+	eventResponseFrame:UnregisterEvent("ISLAND_AZERITE_GAIN")
 	eventResponseFrame:UnregisterEvent("ISLAND_COMPLETED")
 	print("IslandExpeditionHelper unloaded")
 end
@@ -89,7 +199,55 @@ function IslandExpeditionHelper.isInExpedition()
 	end
 	--print("not in Expedition Zone")
 	return false
-end											   
+end
+
+function IslandExpeditionHelper.dPrint(inString)
+	if debugFlag then
+		print(inString)
+	end
+end
+
+function IslandExpeditionHelper.resetCollection()
+	azeriteCollected = 0
+	azeriteCollectedByMe = 0
+	playerTable = {}
+	tempGroup = {}
+	playerIDToRealNameTable = {}
+end
+
+function IslandExpeditionHelper.getTableSize(tableToCheck)
+	local count = 0
+	for k in pairs(tableToCheck) do
+		count = count+1
+	end
+	return count
+end
+
+function IslandExpeditionHelper.printPlayerTable()
+	for k,v in pairs(playerTable) do
+		print(k..": "..v)
+	end
+end
+
+function IslandExpeditionHelper.printRealmToIDList()
+	for k,v in pairs(idToRealm) do
+		print(k..": "..v)
+	end
+end
+
+function IslandExpeditionHelper.getRealmIDfromPlayerID(playerID)
+	return string.match(playerID, "Player%-(%d+)%-.+")	
+end
+
+function IslandExpeditionHelper.printSummary()
+	local percent = azeriteCollectedByMe/azeriteCollected*100
+	local percentFormatted = tonumber(string.format("%.2f", percent))
+	print(azeriteCollectedByMe, azeriteCollected, percent, percentFormatted)
+	local out = string.format("You collected %d azerite by yourself", azeriteCollectedByMe)
+	out = out.." ("..percentFormatted.."%)"
+	print(out)
+end
+
 local shrines = { -- [""] = {["positiv"] = "", ["negativ"] = ""},
     ["Altar of the Sea"] = {["positiv"] = "30Haste", ["negativ"] = "Periodic Frost Damage"}, -- 272644
     ["Cursed Offering"] = {["positiv"] = "30mastery", ["negativ"] = "50health"}, -- 277523
@@ -225,7 +383,7 @@ local azerite = {
 	["Kindleweb Skitterer"] = 2,
 	["Knucklebump Gorilla"] = 6,
 	["Kvaldir Cursewalker"] = 225,
-	["Kvaldir Haul"] = 375,
+	["Kvaldir Haul"] = 250,
 	["Laughing Blaze"] = 2,
 	["Longpaws"] = 400,
 	["Lord Coilfin"] = 200,
@@ -301,7 +459,6 @@ local azerite = {
 	["Scartalon"] = 200,
 	["Senior Producer Gixi"] = 300,
 	["Shredmaw the Voracious"] = 300,
-	["Sigrid the Shroud-Weaver"] = 450,
 	["Slitherblade Gladiator"] = 6,
 	["Slitherblade Ironscale"] = 10,
 	["Slitherblade Oracle"] = 10,
@@ -441,6 +598,10 @@ function IslandExpeditionHelper.checkTooltipForDuplicates()
 end
 
 
+function IslandExpeditionHelper.tryResolvePlayers(player)
+	--TODO use list of groupmembers and match realm IDs to players. assuming, only one player per realm is in group
+end
+
 local waitTable = {};
 local waitFrame = nil;
 
@@ -485,7 +646,8 @@ function IslandExpeditionHelper.deriveAzerite(msg)
 		local foundValue, unit = string.match(msg, azeriteGainString)
 		--print(L["azeriteString"])
 		--print(foundValue, unit)
-		local value = IslandExpeditionHelper.adjustBackToDifficulty(foundValue)
+		
+		local value = tonumber(IslandExpeditionHelper.adjustBackToDifficulty(foundValue))
 		if azeriteValuesLocal[unit] == nil then
 			azeriteValuesLocal[unit] = value
 						
@@ -569,6 +731,10 @@ end
 
 function IslandExpeditionHelper.loadSV()
 	azeriteValuesLocal = AzeriteValues
+	idToRealm = RealmIDlist
+	if idToRealm == nil then
+		idToRealm = {}
+	end
 	removeAzeriteSpam = AzeriteSpam
 	if removeAzeriteSpam == nil then
 		removeAzeriteSpam = false
@@ -580,6 +746,7 @@ function IslandExpeditionHelper.saveSV()
 	table.sort(azeriteValuesLocal)
 	AzeriteValues = azeriteValuesLocal;
 	AzeriteSpam = removeAzeriteSpam
+	RealmIDlist = idToRealm
 end
 
 
@@ -631,3 +798,163 @@ function IslandExpeditionHelper.createCheckbox(label, description, onClick)
 	check.tooltipRequirement = description
 	return check
 end
+
+confusionlist = { --TODO try to save 2 pairs and extend them once you get another pair 
+	
+}
+
+function IslandExpeditionHelper.getParty()
+	local party = {}
+	for groupindex = 1,GetNumGroupMembers()-1 do
+		local name, realm = UnitName("party"..groupindex)
+		if realm == nil then
+			realm = GetRealmName()
+		end
+		local x = {
+			["name"] = name,
+			["realm"] = realm,
+			["isPlayer"] = false
+		}
+		party["party"..groupindex] = x
+	end	
+	-- add the player himself at the end of the list
+	local playerName = UnitName("player")
+	local playerRealm = GetRealmName()
+	local x = {
+			["name"] = playerName,
+			["realm"] = playerRealm,
+			["isPlayer"] = true
+		}
+	party["party"..GetNumGroupMembers()] = x
+	return party
+end
+
+function IslandExpeditionHelper.printParty()
+	for _,v in pairs(tempGroup) do
+		print(v["name"], v["realm"], v["isPlayer"])
+	end
+end
+
+function IslandExpeditionHelper.printPlayerToIDList()
+	for k,v in pairs(playerIDToRealNameTable) do
+		print(k,": ",v)
+	end
+end
+
+function IslandExpeditionHelper.assumePlayer(playerID) --TODO what if players leave halfway?
+	local realmID = IslandExpeditionHelper.getRealmIDfromPlayerID(playerID);
+	--print("ap0", realmID, idToRealm[realmID])
+	local p1, p2 = IslandExpeditionHelper.getOtherPlayers()
+	if p1 ~= nil and p2~= nil then
+		if idToRealm[realmID] ~= nil then		
+			local realm = idToRealm[realmID]				
+			IslandExpeditionHelper.dPrint("ap1", p1, p2, p1["realm"], p2["realm"], realm)
+			if p1 ~= nil and p2~= nil and p1["realm"] ~= p2["realm"] then
+				if p1["realm"] == realm then
+					--print("return p1")
+					return p1["name"].."-"..p1["realm"], p1["name"], p1["realm"]
+				elseif p2["realm"] == realm then
+					--print("return p2")
+					return p2["name"].."-"..p2["realm"], p2["name"], p2["realm"]
+				else
+					IslandExpeditionHelper.dPrint("impossible?")
+				end
+			else
+				IslandExpeditionHelper.dPrint("no decision possible")
+				return playerID, nil, nil
+			end
+		else 
+			if IslandExpeditionHelper.sameRealmPlayers() then	-- both other players from same server
+				IslandExpeditionHelper.dPrint("same realm")
+				local id = IslandExpeditionHelper.getRealmIDfromPlayerID(playerID)
+				local playerRealm = p1["realm"]
+				IslandExpeditionHelper.dPrint("adding ", id, " to list for ", playerRealm) 
+				idToRealm[id] = playerRealm
+			else
+				IslandExpeditionHelper.dPrint("different realms and no way to assign the players to them")
+				if IslandExpeditionHelper.getTableSize(playerIDToRealNameTable)-1 == GetNumGroupMembers() then --only one unknown?
+					IslandExpeditionHelper.dPrint("only one unknown?")
+					if playerIDToRealNameTable[playerID] == nil then
+						local tmpList = tempGroup
+						for k,v in pairs(tmpList) do
+							for key, value in pairs(playerIDToRealNameTable) do
+								if value == v["name"].."-"..v["realm"] then
+									tmpList[k] = nil
+								end
+							end
+						end
+						if IslandExpeditionHelper.getTableSize(tmpList == 1) then
+							local toAddName = tmpList["name"].."-"..tmpList["realm"]
+							local toAddRealm = tmpList["realm"]
+							IslandExpeditionHelper.dPrint("adding "..toAddName.."("..playerID..") to list")
+							playerIDToRealNameTable[playerID] = toAddName
+							local id = IslandExpeditionHelper.getRealmIDfromPlayerID(playerID)
+							IslandExpeditionHelper.dPrint("adding "..toAddRealm.."("..id..") to list")
+							idToRealm[id] = toAddRealm
+						end
+					end
+				end
+			end
+		end
+	end
+	IslandExpeditionHelper.dPrint("couldn't do/find anything, just return the input")
+	return playerID, nil, nil
+end
+
+function IslandExpeditionHelper.getOtherPlayers()
+	local p1 = nil
+	local p2 = nil	
+	for groupindex = 1,GetNumGroupMembers() do	
+		--print("ap1", groupindex, tempGroup["party"..groupindex]["isPlayer"], tempGroup["party"..groupindex]["name"])
+		if not tempGroup["party"..groupindex]["isPlayer"] then
+			if p1 == nil then
+				p1 = tempGroup["party"..groupindex]
+				--print("p1", tempGroup["party"..groupindex])
+			else 
+				p2 = tempGroup["party"..groupindex]
+				--print("p2", tempGroup["party"..groupindex])
+			end		
+		end
+	end
+	return p1, p2
+end
+
+function IslandExpeditionHelper.sameRealmPlayers()
+	local p1, p2 = IslandExpeditionHelper.getOtherPlayers()
+	--print(p1["realm"], p2["realm"])
+	return p1["realm"] == p2["realm"]
+end
+
+function IslandExpeditionHelper.playerIDToRealName(playerID)
+	if playerIDToRealNameTable[playerID] ~= nil then
+		return playerIDToRealNameTable[playerID]
+	else 
+		return playerID
+	end	
+end
+
+
+local b = CreateFrame("Button", "MyButton", UIParent, "UIPanelButtonTemplate")
+b:SetSize(80 ,22) -- width, height
+b:SetText("Button!")
+b:SetPoint("CENTER")
+b:SetScript("OnMouseUp", function(self, button)
+	if button == "LeftButton" then
+		--print("left")
+		--print(azeriteCollectedByMe, azeriteCollected)		
+		--IslandExpeditionHelper.printPlayerTable()
+		--IslandExpeditionHelper.printSummary()
+		IslandExpeditionHelper.registerAddon()
+	elseif button == "RightButton" then
+		--print("right")
+		--IslandExpeditionHelper.printRealmToIDList()
+		--IslandExpeditionHelper.printParty()
+		--IslandExpeditionHelper.printPlayerToIDList()
+		IslandExpeditionHelper.unregisterAddon()
+	end
+end)
+b:SetMovable(true)
+b:EnableMouse(true)
+b:RegisterForDrag("RightButton")
+b:SetScript("OnDragStart", b.StartMoving)
+b:SetScript("OnDragStop", b.StopMovingOrSizing)
