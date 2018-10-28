@@ -157,12 +157,12 @@ local function eventHandler(self, event, arg1, arg2, arg3, arg4, arg5)
 		IslandExpeditionHelper.printSummary()
 		IslandExpeditionHelper.resetCollection()
 		IslandExpeditionHelper.unregisterAddon()		
-    end
-	if event == "ZONE_CHANGED_NEW_AREA" then --entering/leaving expedition
-		IslandExpeditionHelper.toggleAddon()
+    elseif event == "ZONE_CHANGED_NEW_AREA" then --entering/leaving expedition
+		IslandExpeditionHelper.toggleAddon()   
+	elseif event == "CHAT_MSG_ADDON" then
+		IslandExpeditionHelper.receiveSync(arg2, arg4) -- message, sender
 	end
-	
-	--print(event)
+	print(event)
 end
 eventResponseFrame:SetScript("OnEvent", eventHandler);
 
@@ -171,6 +171,7 @@ function IslandExpeditionHelper.registerAddon()
 	eventResponseFrame:RegisterEvent("CURSOR_UPDATE");
 	eventResponseFrame:RegisterEvent("ISLAND_AZERITE_GAIN")
 	eventResponseFrame:RegisterEvent("ISLAND_COMPLETED")
+	eventResponseFrame:RegisterEvent("CHAT_MSG_ADDON")	
 	print("IslandExpeditionHelper loaded")
 end
 
@@ -179,7 +180,8 @@ function IslandExpeditionHelper.unregisterAddon()
 	eventResponseFrame:UnregisterEvent("CURSOR_UPDATE");
 	eventResponseFrame:UnregisterEvent("ISLAND_AZERITE_GAIN")
 	eventResponseFrame:UnregisterEvent("ISLAND_COMPLETED")
-	print("IslandExpeditionHelper unloaded")
+	eventResponseFrame:RegisterEvent("CHAT_MSG_ADDON")	
+	--print("IslandExpeditionHelper unloaded")
 end
 
 function IslandExpeditionHelper.toggleAddon() 
@@ -930,8 +932,20 @@ function IslandExpeditionHelper.playerIDToRealName(playerID)
 		return playerIDToRealNameTable[playerID]
 	else 
 		return playerID
-	end	
+	end
 end
+
+function IslandExpeditionHelper.sendSync(playerString)
+	SendAddonMessage(TAG, playerString, "INSTANCE"); --PARTY
+end
+
+
+function IslandExpeditionHelper.receiveSync(player, id)
+	
+end
+
+
+
 
 
 local b = CreateFrame("Button", "MyButton", UIParent, "UIPanelButtonTemplate")
