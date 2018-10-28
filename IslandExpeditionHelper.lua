@@ -23,13 +23,13 @@ local eventResponseFrame = CreateFrame("Frame", "Helper")
 	--eventResponseFrame:RegisterEvent("ISLANDS_QUEUE_CLOSE")
 
 local EXP_MAP_IDS = {
-	[1034] = "Verdant Wilds", -- 1882
+	[981] = "Un'gol Ruins",
+	[1032] = "Skittering Hollow", --1898
 	[1033] = "Rotten Mire", --1892
-	[1032] = "Skittering Hollow"--, --1898
-	--[1] = "Dread Chain", --1893
-	--[2] = "Whispering Reef", --1883
-	--[3] = "Molten Clay", --1897
-	--[4] = "Ungol Ruins"
+	[1034] = "Verdant Wilds", -- 1882
+	[1035] = "Molten Clay", --1897
+	[1036] = "The Dread Chain", --1893
+	[1037] = "Whispering Reef", --1883
 }
 
 local azeriteGainString = string.gsub(AZERITE_ISLANDS_XP_GAIN, "%%d", "(%%d+)", 1)
@@ -959,14 +959,14 @@ b:SetScript("OnMouseUp", function(self, button)
 		--print("left")
 		--print(azeriteCollectedByMe, azeriteCollected)		
 		--IslandExpeditionHelper.printPlayerTable()
-		--IslandExpeditionHelper.printSummary()
-		IslandExpeditionHelper.registerAddon()
+		IslandExpeditionHelper.printSummary()
+		--IslandExpeditionHelper.registerAddon()
 	elseif button == "RightButton" then
 		--print("right")
 		--IslandExpeditionHelper.printRealmToIDList()
 		--IslandExpeditionHelper.printParty()
 		--IslandExpeditionHelper.printPlayerToIDList()
-		IslandExpeditionHelper.unregisterAddon()
+		--IslandExpeditionHelper.unregisterAddon()
 	end
 end)
 b:SetMovable(true)
