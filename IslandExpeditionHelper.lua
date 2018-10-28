@@ -18,13 +18,13 @@ local eventResponseFrame = CreateFrame("Frame", "Helper")
 	
 
 local EXP_MAP_IDS = {
-	[1034] = "Verdant Wilds", -- 1882
+	[981] = "Un'gol Ruins",
+	[1032] = "Skittering Hollow", --1898
 	[1033] = "Rotten Mire", --1892
-	[1032] = "Skittering Hollow"--, --1898
-	--[1] = "Dread Chain", --1893
-	--[2] = "Whispering Reef", --1883
-	--[3] = "Molten Clay", --1897
-	--[4] = "Ungol Ruins"
+	[1034] = "Verdant Wilds", -- 1882
+	[1035] = "Molten Clay", --1897
+	[1036] = "The Dread Chain", --1893
+	[1037] = "Whispering Reef", --1883
 }
 local azeriteGainString = string.gsub(AZERITE_ISLANDS_XP_GAIN, "%%d", "(%%d+)", 1)
 azeriteGainString = string.gsub(azeriteGainString, "%%s", "(.+)", 1)
@@ -69,7 +69,7 @@ function IslandExpeditionHelper.unregisterAddon()
 	eventResponseFrame:UnregisterEvent("CURSOR_UPDATE");
 	--eventResponseFrame:UnregisterEvent("ISLAND_AZERITE_GAIN")
 	eventResponseFrame:UnregisterEvent("ISLAND_COMPLETED")
-	print("IslandExpeditionHelper unloaded")
+	--print("IslandExpeditionHelper unloaded")
 end
 
 function IslandExpeditionHelper.toggleAddon() 
@@ -630,4 +630,17 @@ function IslandExpeditionHelper.createCheckbox(label, description, onClick)
 	check.tooltipText = label
 	check.tooltipRequirement = description
 	return check
+end
+
+function IslandExpeditionHelper.mapinfo(name) -- name = "Un'gol Ruins"
+	local id = -1
+	for i=1,1300 do
+		if C_Map.GetMapInfo(i) ~= nil then
+			--print(i, C_Map.GetMapInfo(i).name)
+			if C_Map.GetMapInfo(i).name == name then
+				id = i
+			end
+		end
+	end
+	print(id)
 end
