@@ -100,6 +100,7 @@ local function eventHandler(self, event, arg1, arg2, arg3, arg4, arg5)
 		if IslandExpeditionHelper.playerIDToRealName(arg4) == arg4 then
 			--print("isplayer?", arg2)
 			if arg2 then
+				IslandExpeditionHelper.sendSync(arg4)
 				--print("isplayer!")
 				player = UnitName("player")
 				realm = GetRealmName()
@@ -159,7 +160,7 @@ local function eventHandler(self, event, arg1, arg2, arg3, arg4, arg5)
 		IslandExpeditionHelper.unregisterAddon()		
     elseif event == "ZONE_CHANGED_NEW_AREA" then --entering/leaving expedition
 		IslandExpeditionHelper.toggleAddon()
-	elseif event == "CHAT_MSG_ADDON" then
+	elseif event == "CHAT_MSG_ADDON" and arg1 == TAG then
 		IslandExpeditionHelper.receiveSync(arg2, arg4) -- message, sender
 	end
 	--print(event)
@@ -963,7 +964,7 @@ b:SetScript("OnMouseUp", function(self, button)
 		--IslandExpeditionHelper.registerAddon()
 	elseif button == "RightButton" then
 		--print("right")
-		--IslandExpeditionHelper.printRealmToIDList()
+		IslandExpeditionHelper.printRealmToIDList()
 		--IslandExpeditionHelper.printParty()
 		--IslandExpeditionHelper.printPlayerToIDList()
 		--IslandExpeditionHelper.unregisterAddon()
