@@ -945,9 +945,9 @@ end
 
 
 function IslandExpeditionHelper.receiveSync(id, player)
-	print("received info:", id, player)
+	--print("received info:", id, player)
 	playerIDToRealNameTable[id] = player
-	IslandExpeditionHelper.printPlayerToIDList()
+	--IslandExpeditionHelper.printPlayerToIDList()
 end
 
 
