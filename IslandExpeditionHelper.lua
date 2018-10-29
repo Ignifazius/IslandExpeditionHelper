@@ -486,6 +486,9 @@ function IslandExpeditionHelper.deriveAzerite(msg)
 		--print(L["azeriteString"])
 		--print(foundValue, unit)
 		local value = IslandExpeditionHelper.adjustBackToDifficulty(foundValue)
+		if azeriteValuesLocal == nil then
+			azeriteValuesLocal = {}
+		end
 		if azeriteValuesLocal[unit] == nil then
 			azeriteValuesLocal[unit] = value
 						
@@ -569,6 +572,9 @@ end
 
 function IslandExpeditionHelper.loadSV()
 	azeriteValuesLocal = AzeriteValues
+	if azeriteValuesLocal == nil then
+		azeriteValuesLocal = {}
+	end
 	removeAzeriteSpam = AzeriteSpam
 	if removeAzeriteSpam == nil then
 		removeAzeriteSpam = false
