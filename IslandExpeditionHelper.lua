@@ -74,6 +74,7 @@ local function eventHandler(self, event, arg1, arg2, arg3, arg4, arg5)
         if (GetLocale() ~= "deDE" and GetLocale() ~= "enGB" and GetLocale() ~= "enUS") then
             print("IslandExpeditionHelper: Your language is currently NOT fully supported. This addon will only work partially! Please consider providing some translations via the projects website: https://wow.curseforge.com/projects/islandexpeditionhelper")
         end
+		C_ChatInfo.RegisterAddonMessagePrefix(TAG)
 	elseif(event == "PLAYER_LOGIN") then
 		IslandExpeditionHelper.loadSV()
 		IslandExpeditionHelper.createMenuFrame()
@@ -163,7 +164,9 @@ local function eventHandler(self, event, arg1, arg2, arg3, arg4, arg5)
 	elseif event == "CHAT_MSG_ADDON" and arg1 == TAG then
 		IslandExpeditionHelper.receiveSync(arg2, arg4) -- message, sender
 	end
-	--print(event)
+	if event ~= "UPDATE_MOUSEOVER_UNIT" and event ~= "CURSOR_UPDATE" then
+		--print(event, arg1)
+	end
 end
 eventResponseFrame:SetScript("OnEvent", eventHandler);
 
@@ -937,11 +940,11 @@ function IslandExpeditionHelper.playerIDToRealName(playerID)
 end
 
 function IslandExpeditionHelper.sendSync(playerString)
-	SendAddonMessage(TAG, playerString, "INSTANCE"); --PARTY
+	C_ChatInfo.SendAddonMessage(TAG, playerString, "INSTANCE_CHAT");
 end
 
 
-function IslandExpeditionHelper.receiveSync(player, id)
+function IslandExpeditionHelper.receiveSync(id, player)
 	print("received info:", id, player)
 	playerIDToRealNameTable[id] = player
 	IslandExpeditionHelper.printPlayerToIDList()
@@ -960,13 +963,18 @@ b:SetScript("OnMouseUp", function(self, button)
 		--print("left")
 		--print(azeriteCollectedByMe, azeriteCollected)		
 		--IslandExpeditionHelper.printPlayerTable()
-		IslandExpeditionHelper.printSummary()
+		--IslandExpeditionHelper.printSummary()
 		--IslandExpeditionHelper.registerAddon()
+		--IslandExpeditionHelper.registerAddon()
+		for k,v in pairs (C_ChatInfo.GetRegisteredAddonMessagePrefixes()) do
+			print(k,v)
+		end
+		C_ChatInfo.SendAddonMessage(TAG, "InstanceTestString", "INSTANCE_CHAT");
 	elseif button == "RightButton" then
 		--print("right")
-		IslandExpeditionHelper.printRealmToIDList()
+		--IslandExpeditionHelper.printRealmToIDList()
 		--IslandExpeditionHelper.printParty()
-		--IslandExpeditionHelper.printPlayerToIDList()
+		IslandExpeditionHelper.printPlayerToIDList()
 		--IslandExpeditionHelper.unregisterAddon()
 	end
 end)
