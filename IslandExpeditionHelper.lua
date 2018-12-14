@@ -25,6 +25,8 @@ local EXP_MAP_IDS = {
 	[1035] = "Molten Clay", --1897
 	[1036] = "The Dread Chain", --1893
 	[1037] = "Whispering Reef", --1883
+	[1336] = "Havenswood",
+	[1337] = "Jorundall",
 }
 local azeriteGainString = string.gsub(AZERITE_ISLANDS_XP_GAIN, "%%d", "(%%d+)", 1)
 azeriteGainString = string.gsub(azeriteGainString, "%%s", "(.+)", 1)
