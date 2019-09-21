@@ -1,7 +1,7 @@
 ## Title: IslandExpeditionHelper
-## Version: 0.10b
+## Version: 0.10
 ## Author: Ignifazius
-## Interface: 80100
+## Interface: 80200
 ## Notes: Adds tooltips for Expeditions.
 ## Notes-deDE: Fügt Toolstips für die Expeditionen hinzu.
 ## OptionalDeps: ElvUI
