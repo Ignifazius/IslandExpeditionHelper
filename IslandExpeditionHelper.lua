@@ -318,7 +318,7 @@ function IslandExpeditionHelper.createConfigFrame()
 	
 	configBottom = configFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     configBottom:SetPoint("BOTTOMLEFT", 16, 16)
-    configBottom:SetText("If you want to help translate this addon, visit\n https://wow.curseforge.com/projects/islandexpeditionhelper/ \nor write me a PM on CurseForge. \nCurrently only German and English translations are available.")
+    configBottom:SetText("If you want to help to translate this addon, visit\n https://wow.curseforge.com/projects/islandexpeditionhelper/ \nor write me a PM on CurseForge. \nCurrently only German and English translations are available.")
 end
 
 function IslandExpeditionHelper.DisplaySpam(bool)
