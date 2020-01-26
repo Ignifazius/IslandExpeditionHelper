@@ -132,7 +132,7 @@ function IslandExpeditionHelper.addValueToTooltip()
 	if key ~= nil then
 		local infoText, prefix
 		local _,_,_, difficulty = GetInstanceInfo()
-		if addon.values[key] ~= nil then
+		if addon.values[key] ~= nil and addon.values[key][difficulty] ~= nil then
 			infoText = addon.values[key][difficulty]
 			prefix = "IEH: "
 		elseif azeriteValuesLocal ~= nil and azeriteValuesLocal[key] ~= nil and azeriteValuesLocal[key][difficulty] ~= nil then
